@@ -1,0 +1,72 @@
+stages:
+  - build
+  - codestyle
+  - integration_test
+  - deploy
+
+build_app:
+  stage: build
+  tags:
+    - test
+  script:
+    - cd src/C3_SimpleBashUtils-1/cat/
+    - make
+    - cd ../grep/
+    - make
+  artifacts:
+    paths:
+      - src/C3_SimpleBashUtils-1/cat/
+      - src/C3_SimpleBashUtils-1/grep/
+    expire_in: 30 days
+  after_script:
+    - cd src
+    - bash ./chat_bot_message.sh
+
+test_codestyle:
+  stage: codestyle
+  tags:
+    - test
+  script:
+    - cd src/C3_SimpleBashUtils-1/cat/
+    - make clang_check
+    - cd ../grep/
+    - make clang_check
+  allow_failure: false
+  after_script:
+    - cd src
+    - bash ./chat_bot_message.sh
+
+integration_tests:
+  stage: integration_test
+  tags:
+    - test
+  script:
+    - cd src
+    - bash ./run_tests.sh
+  artifacts:
+    paths:
+      - src/C3_SimpleBashUtils-1/cat/cat_results.txt
+      - src/C3_SimpleBashUtils-1/grep/grep_results.txt
+    expire_in: 30 days
+  allow_failure: false
+  when: on_success
+  after_script:
+    - cd src
+    - bash ./chat_bot_message.sh
+
+deploy_to_production:
+  stage: deploy
+  tags:
+    - test
+  needs:
+    - build_app
+    - test_codestyle
+    - integration_tests
+  script:
+    - cd src
+    - bash ./deploy.sh
+  when: manual  # Этап запускается вручную
+  allow_failure: false
+  after_script:
+    - cd src
+    - bash ./chat_bot_message.sh

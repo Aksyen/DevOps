@@ -1,0 +1,9 @@
+hello world
+start of the line
+this is the end
+12345
+ABC
+foobar
+a word in a sentence
+@#$%
+this line has 1 number
